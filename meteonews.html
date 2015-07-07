@@ -1,17 +1,28 @@
 <head>
-  <title>meteonews</title>
+  <title>MeteoNews</title>
   <link rel="stylesheet" href="https://storage.googleapis.com/code.getmdl.io/1.0.0/material.indigo-pink.min.css">
   <script src="https://storage.googleapis.com/code.getmdl.io/1.0.0/material.min.js"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
 
 <body>
-  <h1>Welcome to Meteor!</h1>
+  <div class="container">
+    <header>
+      <h1>News List</h1>
+    </header>
+    <form class="new-feed">
+      <input type="text" name="feed" id="newfeed" placeholder="Add new feed url" />
+      <button class="submitFeed">Add feed</button>
 
-  {{> hello}}
+    </form>
+    <ul>
+      {{#each feeds}}
+        {{> feed}}
+      {{/each}}
+    </ul>
+  </div>
 </body>
 
-<template name="hello">
-  <button>Click Me</button>
-  <p>You've pressed the button {{counter}} times.</p>
+<template name="feed">
+  <li><a href="{{link}}">{{title}}</a> - {{url}}</li>
 </template>
