@@ -13,16 +13,24 @@
     <form class="new-feed">
       <input type="text" name="feed" id="newfeed" placeholder="Add new feed url" />
       <button class="submitFeed">Add feed</button>
-
     </form>
     <ul>
       {{#each feeds}}
         {{> feed}}
       {{/each}}
+
     </ul>
   </div>
 </body>
 
 <template name="feed">
-  <li><a href="{{link}}">{{title}}</a> - {{url}}</li>
+  <li><a href="{{link}}">{{title}}</a> - {{url}} - <button class="updateFeed">Update</button></li>
+  <ul>
+    {{#each news _id}}
+      {{> news_item}}
+    {{/each}}
+  </ul>
+</template>
+<template name="news_item">
+  <li><a href="{{link}}">{{title}}</a></li>
 </template>
