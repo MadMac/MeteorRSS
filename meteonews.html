@@ -24,7 +24,8 @@
 </body>
 
 <template name="feed">
-  <li><a href="{{link}}">{{title}}</a> - {{url}} - <button class="updateFeed">Update</button></li>
+  <li><a href="{{link}}">{{title}}</a> - {{url}} - <button class="updateFeed">Update</button>
+  <button class="clearFeed">Clear</button></li>
   <ul>
     {{#each news _id}}
       {{> news_item}}

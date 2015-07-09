@@ -31,6 +31,11 @@ if (Meteor.isClient) {
       Meteor.call("updateFeed", this._id);
 
       return false;
+    },
+    "click .clearFeed": function (event) {
+      Meteor.call("clearFeed", this._id);
+
+      return false;
     }
   });
 }
@@ -94,7 +99,7 @@ if (Meteor.isServer) {
         meta = this.meta;
         addFeed(url, meta);
       });
-    
+
     },
     updateFeed:function(feedId) {
       feedparser = new FeedParser();
@@ -126,6 +131,12 @@ if (Meteor.isServer) {
         }
       });
 
+    },
+    clearFeed:function(feedId) {
+      console.log("Clear: " + feedId);
+      News.remove({
+        feedId: feedId
+      });
     }
   });
 
