@@ -41,6 +41,16 @@ if (Meteor.isClient) {
       Meteor.call("removeFeed", this._id);
 
       return false;
+    },
+    "click .hideFeed": function (event) {
+      if ( $( "#" + this._id ).is( ":hidden" ) ) {
+        $( "#" + this._id ).show();
+        $(".hide-" + this._id).removeClass("active");
+      } else {
+        $( "#" + this._id ).hide();
+        $(".hide-" + this._id).addClass("active");
+      }
+      return false;
     }
   });
 }
