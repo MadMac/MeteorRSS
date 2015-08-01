@@ -1,0 +1,67 @@
+<head>
+  <title>Meteor-rss</title>
+  <link rel="stylesheet" href="meteonews.css">
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>News List</h1>
+    </header>
+    <form class="new-feed form-inline">
+      <div class="form-group">
+
+        <input type="text" name="feed" id="newfeed" class="form-control" placeholder="Add new feed url" />
+        <button class="submitFeed btn btn-primary">Add feed</button>
+      </div>
+    </form>
+    <ul>
+      {{#each feeds}}
+        {{> feed}}
+      {{/each}}
+
+    </ul>
+  </div>
+</body>
+
+<template name="feed">
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-text" href="{{link}}">{{title}}</a>
+        <p class="navbar-text">{{url}}</p>
+      </div>
+      <div class="collapse navbar-collapse">
+
+        <div class="btn-group nav navbar-nav " role="group">
+          <button class="updateFeed btn btn-default navbar-btn">Update</button>
+          <button class="clearFeed btn btn-default navbar-btn">Clear</button>
+          <button class="removeFeed btn btn-default navbar-btn">Remove feed</button>
+
+        </div>
+        <button type="button" class="hideFeed btn btn-default navbar-btn hide-{{_id}}">Hide</button>
+      </div>
+    </div>
+  </nav>
+  <table class="table table-striped"  id="{{_id}}">
+    <thead>
+      <tr>
+        <th>
+          News
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each news _id}}
+        {{> news_item}}
+      {{/each}}
+    </tbody>
+  </table>
+</template>
+<template name="news_item">
+  <tr>
+    <td>
+      <a href="{{link}}">{{title}}</a>
+    </td>
+  </tr>
+</template>
