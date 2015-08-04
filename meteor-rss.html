@@ -29,7 +29,6 @@
     <div class="container-fluid">
       <div class="navbar-header">
         <a class="navbar-text" href="{{link}}">{{title}}</a>
-        <p class="navbar-text">{{url}}</p>
       </div>
       <div class="collapse navbar-collapse">
 
@@ -44,24 +43,28 @@
     </div>
   </nav>
   <table class="table table-striped"  id="{{_id}}">
-    <thead>
-      <tr>
-        <th>
-          News
-        </th>
-      </tr>
-    </thead>
     <tbody>
       {{#each news _id}}
         {{> news_item}}
+      {{else}}
+        There is no news loaded. Please click "Update"
       {{/each}}
+      <button type="button" class="btn btn-primary showMore">Show more</button>
     </tbody>
+
   </table>
 </template>
+
 <template name="news_item">
   <tr>
     <td>
       <a href="{{link}}">{{title}}</a>
     </td>
   </tr>
+</template>
+
+<template name="ifLess">
+  {{#if isLess value}}
+    {{> UI.contentBlock}}
+  {{/if}}
 </template>

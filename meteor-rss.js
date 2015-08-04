@@ -20,20 +20,39 @@ if (Meteor.isClient) {
       var newUrl = template.find("#newfeed").value;
       if (newUrl != "")
       {
-        Meteor.call("addFeed", newUrl);
+        Meteor.call("addFeed", newUrl, function(error, result) {
+          if (error != undefined)
+          {
+            console.log("Error adding feed " + error);
+            // TODO: Show error
+          }
+        });
       }
       template.find("#newfeed").value = "";
-      console.log(event);
+      Session.set(this._id, 10);
+      console.log(newUrl);
 
       return false;
     },
     "click .updateFeed": function (event) {
-      Meteor.call("updateFeed", this._id);
+      var showAmount;
+
+      if (Session.get(this._id) == undefined)
+      {
+        showAmount = 10;
+        Session.set(this._id, showAmount);
+      } else {
+        showAmount = Session.get(this._id);
+      }
+
+      Meteor.call("updateFeed", this._id, showAmount);
 
       return false;
     },
     "click .clearFeed": function (event) {
       Meteor.call("clearFeed", this._id);
+
+      Session.set(this._id, undefined)
 
       return false;
     },
@@ -51,8 +70,28 @@ if (Meteor.isClient) {
         $(".hide-" + this._id).addClass("active");
       }
       return false;
+    },
+    "click .showMore": function (event) {
+      var showAmount;
+      if (Session.get(this._id) == undefined)
+      {
+        Session.set(this._id, 10);
+        showAmount = 10;
+      } else {
+        showAmount = Session.get(this._id)+10;
+      }
+
+      console.log(showAmount);
+      Meteor.call("updateFeed", this._id, showAmount);
+      Session.set(this._id, showAmount);
+
+      return false;
     }
   });
+
+  Template.ifLess.helpers({isLess: function (value) {
+    return (value < 10);
+  }});
 }
 
 var addFeed = function(url, meta) {
@@ -61,13 +100,14 @@ var addFeed = function(url, meta) {
     Feeds.insert({
       url: url,
       title: meta.title,
-      link: meta.link
+      link: meta.link,
     });
   }).run();
 };
 
-var addNews = function(title, link, date, feedId) {
+var addNews = function(title, link, date, feedId, index) {
   console.log("Lisäys " + title);
+
   Fiber(function() {
     News.remove({
       link: link,
@@ -77,7 +117,8 @@ var addNews = function(title, link, date, feedId) {
       link: link,
       title: title,
       date: date,
-      feedId: feedId
+      feedId: feedId,
+      _index: index
     });
   }).run();
 };
@@ -86,6 +127,7 @@ if (Meteor.isServer) {
   var FeedParser = Meteor.npmRequire('feedparser');
   var Request = Meteor.npmRequire('request');
   var Fiber = Meteor.npmRequire('fibers')
+
   var meta = "";
   var feedparser;
   var req;
@@ -113,11 +155,12 @@ if (Meteor.isServer) {
       feedparser.on('readable', function() {
         meta = this.meta;
         addFeed(url, meta);
-      });
 
+      });
     },
-    updateFeed:function(feedId) {
+    updateFeed:function(feedId, showIndex) {
       feedparser = new FeedParser();
+      var index = 0;
       console.log("Update: " + feedId);
       var curFeed = Feeds.findOne(feedId);
 
@@ -142,9 +185,16 @@ if (Meteor.isServer) {
 
         while (item = this.read())
         {
-          addNews(item.title, item.link, item.date, feedId);
+          if (index < showIndex)
+          {
+            addNews(item.title, item.link, item.date, feedId, index);
+            index++;
+          }
         }
       });
+
+    },
+    showMore:function(feedId) {
 
     },
     clearFeed:function(feedId) {
