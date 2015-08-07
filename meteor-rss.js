@@ -1,41 +1,66 @@
+
 Feeds = new Mongo.Collection("feeds");
 News = new Mongo.Collection("news");
 
 if (Meteor.isClient) {
-
+  Meteor.subscribe( "feeds" );
+  Meteor.subscribe( "news" );
   Template.body.helpers({
     feeds: function() {
       return Feeds.find({});
     }
 
   });
+
   Template.feed.helpers({
     news: function(feedId) {
       console.log(feedId);
       return News.find({feedId: feedId});
     }
   });
+
+
+
   Template.body.events({
     "click .submitFeed": function (event, template) {
-      var newUrl = template.find("#newfeed").value;
-      if (newUrl != "")
+      var url = template.find("#newfeed").value;
+      if (url != "")
       {
-        Meteor.call("addFeed", newUrl, function(error, result) {
-          if (error != undefined)
-          {
-            console.log("Error adding feed " + error);
-            // TODO: Show error
-          }
-        });
+        $.ajax({
+              	type: "GET",
+              	url: "http://ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=10&q="+url,
+              	dataType: "jsonp",
+              	success: function( data ) {
+                  if ( data['responseStatus'] !== 200 ) {
+                    alert( "Could not fetch feed from "+url+". Try again." );
+                  } else {
+                    var feed = data['responseData'];
+                    var title = data['responseData']['feed']['title'];
+                    var articleCount = data['responseData']['feed']['entries'].length;
+                    //console.log("Article count: "+articleCount);
+                    //console.log(title);
+                    Meteor.call( 'addFeed', {
+                      url: url,
+                      title: title,
+                      articleCount: articleCount
+                    });
+
+                  }
+                }
+              });
+
       }
       template.find("#newfeed").value = "";
       Session.set(this._id, 10);
-      console.log(newUrl);
+      console.log(url);
 
       return false;
     },
     "click .updateFeed": function (event) {
       var showAmount;
+      var url = Feeds.findOne({_id: this._id}).link;
+      var feedId = Feeds.findOne({_id: this._id})._id;
+      console.log(url);
 
       if (Session.get(this._id) == undefined)
       {
@@ -45,8 +70,57 @@ if (Meteor.isClient) {
         showAmount = Session.get(this._id);
       }
 
-      Meteor.call("updateFeed", this._id, showAmount);
+      var lastPublished = Feeds.findOne({_id: this._id}).lastPublishedDate;
+      var newLastPublished;
 
+      //  Meteor.call("updateFeed", this._id, showAmount);
+      if (url != "")
+      {
+        $.ajax({
+                type: "GET",
+                url: "http://ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=10&q="+url,
+                dataType: "jsonp",
+                success: function( data ) {
+                  if ( data['responseStatus'] !== 200 ) {
+                    alert( "Could not fetch feed from "+url+". Try again." );
+                  } else {
+                    var feed = data['responseData'];
+                    var articles = data['responseData']['feed']['entries'];
+                    var articleCount = articles.length;
+
+                    for ( var i = 0; i < articleCount; i++)
+                    {
+                      if (i === 0)
+                      {
+                        newLastPublished = Date.parse( articles[i]['publishedDate']);
+                      }
+
+                      if (Date.parse(articles[i]['publishedDate']) > lastPublished || lastPublished == null)
+                      {
+
+
+                        Meteor.call('addNews', {
+                            feedId: feedId,
+                            title: articles[i]['title'],
+                            url: articles[i]['link'],
+                            publishedDate: articles[i]['publishedDate']
+                          });
+                      }
+
+                      if ( i === (articleCount -1))
+                      {
+                        Meteor.call( 'setLastPublishedDate', feedId, newLastPublished);
+                      }
+                    }
+                    //console.log("Article count: "+articleCount);
+                    //console.log(title);
+
+
+                  }
+                }
+              });
+
+      }
       return false;
     },
     "click .clearFeed": function (event) {
@@ -92,127 +166,58 @@ if (Meteor.isClient) {
   Template.ifLess.helpers({isLess: function (value) {
     return (value < 10);
   }});
+
+
 }
 
-var addFeed = function(url, meta) {
-  console.log("Lisäys");
-  Fiber(function() {
-    Feeds.insert({
-      url: url,
-      title: meta.title,
-      link: meta.link,
-    });
-  }).run();
-};
-
-var addNews = function(title, link, date, feedId, index) {
-  console.log("Lisäys " + title);
-
-  Fiber(function() {
+Meteor.methods({
+  addFeed: function(options){
+    options = options || {};
+      console.log(options);
+    //  pubDate = Date.parse( options.publishedDate );
+      return Feeds.insert({
+        link: options.url,
+        title: options.title,
+        lastPublishedDate: undefined
+      //  feedId: options.feedId,
+      });
+  },
+  removeFeed:function(feedId) {
+    console.log("Removed: " + feedId);
     News.remove({
-      link: link,
       feedId: feedId
     });
-    News.insert({
-      link: link,
-      title: title,
-      date: date,
-      feedId: feedId,
-      _index: index
+    Feeds.remove({
+      _id: feedId
     });
-  }).run();
-};
+  },
+  clearFeed:function(feedId) {
+    console.log("Clear: " + feedId);
+    News.remove({
+      feedId: feedId
+    });
+  },
+  addNews: function( options ) {
+    options = options || {};
+    pubDate = Date.parse( options.publishedDate );
+    return News.insert({
+      //  owner: Meteor.userId(),
+        feedId: options.feedId,
+        title: options.title,
+        url: options.url,
+        publishedDate: pubDate,
+    });
+  },
+  setLastPublishedDate: function( feedId, lastPublishedDate ) {
+    return Feeds.update( feedId, {
+      $set: { lastPublishedDate: lastPublishedDate }
+    });
+  }
+
+});
+
 
 if (Meteor.isServer) {
-  var FeedParser = Meteor.npmRequire('feedparser');
-  var Request = Meteor.npmRequire('request');
-  var Fiber = Meteor.npmRequire('fibers')
-
-  var meta = "";
-  var feedparser;
-  var req;
-  var stream;
-  Meteor.methods({
-    addFeed:function(url){
-      feedparser = new FeedParser();
-      req = Request(url);
-
-      req.on('error', function (error) {
-        console.log("Error loading url");
-      });
-      req.on('response', function (res) {
-        stream = this;
-
-        stream.pipe(feedparser);
-      });
-
-      feedparser.on('error', function(error) {
-        console.log(error, error.stack);
-      });
-      feedparser.on('end', function() {
-
-      });
-      feedparser.on('readable', function() {
-        meta = this.meta;
-        addFeed(url, meta);
-
-      });
-    },
-    updateFeed:function(feedId, showIndex) {
-      feedparser = new FeedParser();
-      var index = 0;
-      console.log("Update: " + feedId);
-      var curFeed = Feeds.findOne(feedId);
-
-      req = Request(curFeed.url);
-
-      req.on('error', function (error) {
-        console.log("Error loading url");
-      });
-      req.on('response', function (res) {
-        stream = this;
-        stream.pipe(feedparser);
-      });
-
-      feedparser.on('error', function(error) {
-        console.log(error, error.stack);
-      });
-      feedparser.on('end', function() {
-        console.log("Ended reading feed");
-      });
-      feedparser.on('readable', function() {
-        var item;
-
-        while (item = this.read())
-        {
-          if (index < showIndex)
-          {
-            addNews(item.title, item.link, item.date, feedId, index);
-            index++;
-          }
-        }
-      });
-
-    },
-    showMore:function(feedId) {
-
-    },
-    clearFeed:function(feedId) {
-      console.log("Clear: " + feedId);
-      News.remove({
-        feedId: feedId
-      });
-    },
-    removeFeed:function(feedId) {
-      console.log("Removed: " + feedId);
-      News.remove({
-        feedId: feedId
-      });
-      Feeds.remove({
-        _id: feedId
-      });
-    }
-  });
 
   Meteor.startup(function () {
     // code to run on server at startup
