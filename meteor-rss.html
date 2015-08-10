@@ -5,22 +5,24 @@
 <body>
   <div class="container">
     <div id="leftside">
-      <header>
-        <h1>News List</h1>
-      </header>
-      <form class="new-feed form-inline">
-        <div class="form-group">
+      <div id="top">
+        <header id="top_part">
+          <h1>News List</h1>
+        </header>
+        <form class="new-feed form-inline">
+          <div class="form-group">
 
-          <input type="text" name="feed" id="newfeed" class="form-control" placeholder="Add new feed url" />
-          <button class="submitFeed btn btn-primary">Add feed</button>
-        </div>
-      </form>
-      <ul>
+            <input type="text" name="feed" id="newfeed" class="form-control" placeholder="Add new feed url" />
+            <button class="submitFeed btn btn-primary">Add feed</button>
+          </div>
+        </form>
+      </div>
+      <div id="feedsContainer">
         {{#each feeds}}
           {{> feed}}
         {{/each}}
+      </div>
 
-      </ul>
     </div>
 
     <div id="rightside">
@@ -45,9 +47,11 @@
 
         </div>
         <button type="button" class="hideFeed btn btn-default navbar-btn hide-{{_id}}">Hide</button>
+        <span class="updated updated-{{_id}}">Updated</span>
       </div>
     </div>
   </nav>
+
   <table class="table table-striped"  id="{{_id}}">
     <tbody>
       {{#each news _id}}

@@ -4,10 +4,13 @@ News = new Mongo.Collection("news");
 
 
 
+
 if (Meteor.isClient) {
   Meteor.subscribe( "feeds" );
   Meteor.subscribe( "news" );
+
   Template.body.helpers({
+
     feeds: function() {
       return Feeds.find({});
     }
@@ -15,14 +18,14 @@ if (Meteor.isClient) {
 
   Template.feed.helpers({
     news: function(feedId) {
+
       console.log(feedId);
       return News.find({feedId: feedId});
     }
   });
 
-
-
   Template.body.events({
+
     "click .submitFeed": function (event, template) {
       var url = template.find("#newfeed").value;
       if (url != "")
@@ -112,11 +115,14 @@ if (Meteor.isClient) {
               });
 
       }
+      $( ".updated-" + this._id ).show();
+      $( ".updated-" + this._id ).fadeOut( 2000, function() {
+      });
       return false;
     },
     "click .clearFeed": function (event) {
       Meteor.call("clearFeed", this._id);
-
+      Meteor.call( 'setLastPublishedDate', this._id, 0);
 
       return false;
     },
