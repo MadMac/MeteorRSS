@@ -48,7 +48,7 @@
       {{else}}
         There is no news loaded. Please click "Update"
       {{/each}}
-      <button type="button" class="btn btn-primary showMore">Show more</button>
+
     </tbody>
 
   </table>
@@ -60,10 +60,4 @@
       <a href="{{url}}">{{title}}</a>
     </td>
   </tr>
-</template>
-
-<template name="ifLess">
-  {{#if isLess value}}
-    {{> UI.contentBlock}}
-  {{/if}}
 </template>

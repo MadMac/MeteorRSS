@@ -2,6 +2,8 @@
 Feeds = new Mongo.Collection("feeds");
 News = new Mongo.Collection("news");
 
+
+
 if (Meteor.isClient) {
   Meteor.subscribe( "feeds" );
   Meteor.subscribe( "news" );
@@ -9,7 +11,6 @@ if (Meteor.isClient) {
     feeds: function() {
       return Feeds.find({});
     }
-
   });
 
   Template.feed.helpers({
@@ -48,27 +49,17 @@ if (Meteor.isClient) {
                   }
                 }
               });
-
       }
       template.find("#newfeed").value = "";
-      Session.set(this._id, 10);
+
       console.log(url);
 
       return false;
     },
     "click .updateFeed": function (event) {
-      var showAmount;
       var url = Feeds.findOne({_id: this._id}).link;
       var feedId = Feeds.findOne({_id: this._id})._id;
-      console.log(url);
-
-      if (Session.get(this._id) == undefined)
-      {
-        showAmount = 10;
-        Session.set(this._id, showAmount);
-      } else {
-        showAmount = Session.get(this._id);
-      }
+      console.log("Url: " + url);
 
       var lastPublished = Feeds.findOne({_id: this._id}).lastPublishedDate;
       var newLastPublished;
@@ -82,12 +73,12 @@ if (Meteor.isClient) {
                 dataType: "jsonp",
                 success: function( data ) {
                   if ( data['responseStatus'] !== 200 ) {
-                    alert( "Could not fetch feed from "+url+". Try again." );
+                    console.log( "Could not fetch feed from "+url+". Try again." );
                   } else {
                     var feed = data['responseData'];
                     var articles = data['responseData']['feed']['entries'];
                     var articleCount = articles.length;
-
+                    console.log(articleCount);
                     for ( var i = 0; i < articleCount; i++)
                     {
                       if (i === 0)
@@ -126,7 +117,6 @@ if (Meteor.isClient) {
     "click .clearFeed": function (event) {
       Meteor.call("clearFeed", this._id);
 
-      Session.set(this._id, undefined)
 
       return false;
     },
@@ -144,28 +134,8 @@ if (Meteor.isClient) {
         $(".hide-" + this._id).addClass("active");
       }
       return false;
-    },
-    "click .showMore": function (event) {
-      var showAmount;
-      if (Session.get(this._id) == undefined)
-      {
-        Session.set(this._id, 10);
-        showAmount = 10;
-      } else {
-        showAmount = Session.get(this._id)+10;
-      }
-
-      console.log(showAmount);
-      Meteor.call("updateFeed", this._id, showAmount);
-      Session.set(this._id, showAmount);
-
-      return false;
     }
   });
-
-  Template.ifLess.helpers({isLess: function (value) {
-    return (value < 10);
-  }});
 
 
 }
