@@ -134,6 +134,10 @@ if (Meteor.isClient) {
         $(".hide-" + this._id).addClass("active");
       }
       return false;
+    },
+    "click .news_link": function (event) {
+      $(".news_iframe").attr('src', this.url);
+      console.log("Changed to: " + this.url);
     }
   });
 
