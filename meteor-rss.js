@@ -20,7 +20,7 @@ if (Meteor.isClient) {
     news: function(feedId) {
 
       console.log(feedId);
-      return News.find({feedId: feedId});
+      return News.find({feedId: feedId}, {sort: {publishedDate: -1}});
     }
   });
 
@@ -143,7 +143,16 @@ if (Meteor.isClient) {
     },
     "click .news_link": function (event) {
       $(".news_iframe").attr('src', this.url);
+      Meteor.call("setAsRead", this._id);
       console.log("Changed to: " + this.url);
+    },
+    "click .deleteNews": function (event) {
+      Meteor.call("deleteNews", this._id);
+      return false;
+    },
+    "click .markAsRead": function (event) {
+      Meteor.call("markAsRead", this._id);
+      return false;
     }
   });
 
@@ -186,12 +195,32 @@ Meteor.methods({
         title: options.title,
         url: options.url,
         publishedDate: pubDate,
+        read: false
     });
   },
   setLastPublishedDate: function( feedId, lastPublishedDate ) {
     return Feeds.update( feedId, {
       $set: { lastPublishedDate: lastPublishedDate }
     });
+  },
+  setAsRead: function( newsId ) {
+
+    return News.update( newsId, {
+      $set : { read : true }
+      });
+  },
+  deleteNews: function( newsId ) {
+    News.remove({
+      _id: newsId
+      });
+  },
+  markAsRead: function ( feedId ) {
+    console.log("Marked all read: " + feedId);
+    return News.update ( {'feedId': feedId }, {
+      $set: { read : true}
+      },
+      { multi: true });
+
   }
 
 });

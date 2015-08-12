@@ -41,12 +41,13 @@
       <div class="collapse navbar-collapse">
 
         <div class="btn-group nav navbar-nav " role="group">
-          <button class="updateFeed btn btn-default navbar-btn">Update</button>
-          <button class="clearFeed btn btn-default navbar-btn">Clear</button>
-          <button class="removeFeed btn btn-default navbar-btn">Remove feed</button>
+          <button class="updateFeed btn btn-sm navbar-btn btn-default">Update</button>
+          <button class="clearFeed btn btn-sm navbar-btn btn-default">Clear</button>
+          <button class="removeFeed btn btn-sm navbar-btn btn-default">Remove feed</button>
 
         </div>
-        <button type="button" class="hideFeed btn btn-default navbar-btn hide-{{_id}}">Hide</button>
+        <button type="button" class="hideFeed btn btn-sm navbar-btn btn-default hide-{{_id}}">Hide</button>
+        <button type="button" class="markAsRead btn btn-sm navbar-btn btn-default">Mark all as read</button>
         <span class="updated updated-{{_id}}">Updated</span>
       </div>
     </div>
@@ -67,7 +68,11 @@
 
 <template name="news_item">
   <tr>
-    <td>
+    <td class="{{#if read}}read{{else}}notRead{{/if}}">
+      <button type="button" class="btn btn-danger btn-xs deleteNews" aria-label="Left Align">
+        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+      </button>
+
       <a href="#" class="news_link">{{title}}</a>
     </td>
   </tr>
