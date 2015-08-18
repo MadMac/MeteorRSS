@@ -9,6 +9,16 @@ if (Meteor.isClient) {
   Meteor.subscribe( "feeds" );
   Meteor.subscribe( "news" );
 
+  Meteor.startup(function () {
+    var allReadNews = News.find({read: true}).fetch();
+    var readNewsLength = allReadNews.length;
+    console.log(readNewsLength);
+    for (var i = 0; i < readNewsLength; i++)
+    {
+      News.remove({_id: allReadNews[i]._id});
+    }
+  });
+
   Template.body.helpers({
 
     feeds: function() {
